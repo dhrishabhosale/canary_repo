@@ -1,17 +1,4 @@
-"""CANARY dashboard - Phase 3A (foundation) + 3B (system status) + 3C (6-node network)
-+ 3D (live 4WD rover visualization) + 3E (detailed live telemetry)
-+ 3F (Security Layer 1 panel - dashboard visualization only, see the 3F section below)
-+ 3G (Security Layer 2: live Random Forest inference on the simulator's sensor values)
-+ 3H (unified detection breakdown: Layer 1 + Layer 2 verdict, counters, reasons, timeline)
-+ 3I (Attack Lab: controlled demo attacks through the existing Layer1Monitor.inject() and the
-      simulator's existing PhysicalAttack hook; simulation / demonstration only).
 
-Drives the EXISTING simulation (simulation/sensor_simulator.py -> VehicleModel).
-No simulation logic lives here. This is a laptop simulation: messaging is
-simulated CAN-like messaging over ESP-NOW, not real CAN / CAN-FD hardware.
-
-Run from the repo root:  streamlit run dashboard/app.py
-"""
 import json
 import math
 import os
