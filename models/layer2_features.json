@@ -1,0 +1,29 @@
+{
+  "features": [
+    "fl_speed",
+    "fr_speed",
+    "rl_speed",
+    "rr_speed",
+    "left_speed",
+    "right_speed",
+    "vehicle_speed",
+    "acceleration",
+    "observed_yaw_rate",
+    "expected_yaw_rate",
+    "yaw_residual"
+  ],
+  "n_features": 11,
+  "n_estimators": 100,
+  "max_depth": 8,
+  "random_state": 42,
+  "classes": [
+    "NORMAL",
+    "ANOMALY"
+  ],
+  "threshold": 0.5,
+  "metrics": {
+    "accuracy": 1.0,
+    "roc_auc": 1.0,
+    "test_samples": 480
+  }
+}

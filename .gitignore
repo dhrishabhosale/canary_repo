@@ -30,6 +30,12 @@ provisioning/provision
 Thumbs.db
 desktop.ini
 
+# --- Python ---
+__pycache__/
+*.pyc
+temp_zip/
+docs/summary.txt
+
 # --- Editor junk ---
 *.swp
 *~
