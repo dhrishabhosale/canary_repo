@@ -61,13 +61,13 @@ void IRAM_ATTR isr_left_encoder() {
   }
 }
 
-// ISR for Right Encoder
+// ISR for Right Encoder (Inverted to match forward vehicle direction)
 void IRAM_ATTR isr_right_encoder() {
   int b_val = digitalRead(ENC_RIGHT_B_PIN);
   if (b_val == HIGH) {
-    right_pulse_count++;
-  } else {
     right_pulse_count--;
+  } else {
+    right_pulse_count++;
   }
 }
 
