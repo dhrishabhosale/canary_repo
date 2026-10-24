@@ -35,51 +35,183 @@ from simulation.layer2_ids import Layer2IDS
 
 # Set page config
 st.set_page_config(
-    page_title="CANARY SOC | Vehicle IDS Dashboard",
+    page_title="CANARY | Vehicle Defense SOC",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Custom dark cybersecurity SOC styling
+# Custom dark cybersecurity SOC styling with modern glassmorphism & HUD aesthetics
 st.markdown(
     """
 <style>
-    .reportview-container, .main, .block-container {
-        background-color: #0d1117;
-        color: #c9d1d9;
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    .stMetric {
-        background-color: #161b22;
-        border: 1px solid #30363d;
-        padding: 10px;
-        border-radius: 6px;
+
+    code, pre, .mono-font {
+        font-family: 'JetBrains Mono', monospace !important;
     }
-    .soc-header {
+
+    .main, .block-container {
+        background-color: #0b0f19;
+        color: #e2e8f0;
+        padding-top: 1.5rem;
+        padding-bottom: 2rem;
+    }
+
+    /* Top Navigation / Brand Banner */
+    .top-banner {
+        background: linear-gradient(135deg, rgba(13, 20, 36, 0.9) 0%, rgba(18, 28, 51, 0.85) 100%);
+        border: 1px solid rgba(88, 166, 255, 0.18);
+        border-radius: 12px;
+        padding: 18px 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .top-title {
         font-size: 24px;
         font-weight: 700;
-        color: #58a6ff;
-        border-bottom: 2px solid #30363d;
-        padding-bottom: 8px;
-        margin-bottom: 15px;
+        letter-spacing: 0.8px;
+        background: linear-gradient(90deg, #58a6ff 0%, #38ef7d 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
     }
-    .status-badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-weight: bold;
+    .top-subtitle {
         font-size: 13px;
+        color: #8b949e;
+        margin-top: 4px;
     }
-    .badge-ok { background-color: #238636; color: #ffffff; }
-    .badge-warn { background-color: #d29922; color: #ffffff; }
-    .badge-danger { background-color: #da3633; color: #ffffff; }
-    .badge-info { background-color: #1f6feb; color: #ffffff; }
+
+    /* Glassmorphism SOC Card */
     .soc-card {
-        background-color: #161b22;
+        background: linear-gradient(145deg, rgba(22, 27, 34, 0.75) 0%, rgba(13, 17, 23, 0.9) 100%);
+        border: 1px solid rgba(48, 54, 61, 0.8);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .soc-card:hover {
+        border-color: rgba(88, 166, 255, 0.4);
+    }
+    .soc-card-title {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #8b949e;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Modern KPI Cards */
+    .kpi-box {
+        background: linear-gradient(135deg, rgba(22, 31, 48, 0.65) 0%, rgba(15, 23, 42, 0.85) 100%);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 12px;
+        padding: 16px 18px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .kpi-title {
+        font-size: 12px;
+        color: #94a3b8;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+    .kpi-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 26px;
+        font-weight: 700;
+        color: #f8fafc;
+        margin: 6px 0;
+    }
+    .kpi-sub {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+    }
+    .badge-ok {
+        background: rgba(46, 160, 67, 0.15);
+        color: #3fb950;
+        border: 1px solid rgba(46, 160, 67, 0.4);
+    }
+    .badge-warn {
+        background: rgba(210, 153, 34, 0.15);
+        color: #d29922;
+        border: 1px solid rgba(210, 153, 34, 0.4);
+    }
+    .badge-danger {
+        background: rgba(248, 81, 73, 0.15);
+        color: #f85149;
+        border: 1px solid rgba(248, 81, 73, 0.4);
+    }
+    .badge-info {
+        background: rgba(88, 166, 255, 0.15);
+        color: #58a6ff;
+        border: 1px solid rgba(88, 166, 255, 0.4);
+    }
+
+    /* Streamlit tabs customization */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: transparent;
+        border-bottom: 1px solid #30363d;
+        padding-bottom: 4px;
+        margin-bottom: 20px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        background-color: rgba(22, 27, 34, 0.6);
         border: 1px solid #30363d;
-        border-radius: 6px;
-        padding: 14px;
-        margin-bottom: 12px;
+        border-radius: 8px 8px 0 0;
+        color: #8b949e;
+        padding: 10px 18px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #1f2937 !important;
+        border-color: #58a6ff #30363d transparent #30363d !important;
+        color: #58a6ff !important;
+    }
+
+    /* Terminal console appearance */
+    .terminal-box {
+        background-color: #05080f;
+        border: 1px solid #1e293b;
+        border-radius: 8px;
+        padding: 12px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: #38ef7d;
+        line-height: 1.5;
+        max-height: 380px;
+        overflow-y: auto;
     }
 </style>
 """,
@@ -202,38 +334,103 @@ else:
     ml_res = {"prediction": "UNAVAILABLE", "anomaly_score": 0.0, "features": {}, "kalman_state": {}}
 
 # ---------------------------------------------------------------------
-# Main Dashboard Header
+# Top Brand & Status Banner
 # ---------------------------------------------------------------------
-st.markdown('<div class="soc-header">🛡️ CANARY VEHICLE SECURITY OPERATIONS CENTER</div>', unsafe_allow_html=True)
+rej_total = telem.rej_untrusted + telem.rej_stream + telem.rej_sig + telem.rej_fresh + telem.rej_replay
+status_color = "#3fb950" if rej_total == 0 else ("#f85149" if telem.rej_sig > 0 or telem.rej_replay > 0 else "#d29922")
 
-# Top KPI Row
+st.markdown(
+    f"""
+<div class="top-banner">
+    <div>
+        <h1 class="top-title">🛡️ CANARY DEFENSE OPERATIONS CENTER</h1>
+        <div class="top-subtitle">Multi-Layer In-Vehicle Intrusion Detection & Cryptographic Telemetry System</div>
+    </div>
+    <div style="text-align: right; display: flex; gap: 12px; align-items: center;">
+        <span class="status-badge badge-info">{op_mode}</span>
+        <span class="status-badge" style="background: rgba(30, 41, 59, 0.8); border: 1px solid #334155; color: #94a3b8; font-family: monospace;">
+            CH 1 &nbsp;|&nbsp; 91B ESP-NOW
+        </span>
+        <span class="status-badge" style="background: rgba(22, 27, 34, 0.9); border: 1px solid {status_color}; color: {status_color};">
+            ● L1 SEC: {'SECURE' if rej_total == 0 else f'{rej_total} REJECTED'}
+        </span>
+    </div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
+
+# Top KPI Row using sleek stylized cards
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 with kpi1:
-    mode_badge = f'<span class="status-badge badge-info">{op_mode}</span>'
-    st.markdown(f"**Mode:** {mode_badge}", unsafe_allow_html=True)
-    st.metric("Total Received", f"{telem.rx_total} pkts")
+    st.markdown(
+        f"""
+    <div class="kpi-box">
+        <div class="kpi-title">Layer 1 Total Rx</div>
+        <div class="kpi-value">{telem.rx_total:,} <span style="font-size: 14px; color: #64748b;">pkts</span></div>
+        <div class="kpi-sub">Loss/Drops: <span style="color: {'#3fb950' if telem.q_drops == 0 else '#f85149'};">{telem.q_drops}</span></div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
 with kpi2:
-    st.metric("Verified (Layer 1)", f"{telem.verified} pkts")
-    rej_total = telem.rej_untrusted + telem.rej_stream + telem.rej_sig + telem.rej_fresh + telem.rej_replay
-    st.metric("Total Rejected", f"{rej_total} pkts", delta=-rej_total if rej_total > 0 else 0)
+    verified_pct = (telem.verified / telem.rx_total * 100) if telem.rx_total > 0 else 100.0
+    st.markdown(
+        f"""
+    <div class="kpi-box">
+        <div class="kpi-title">Verified (Layer 1)</div>
+        <div class="kpi-value" style="color: #38ef7d;">{telem.verified:,} <span style="font-size: 14px; color: #64748b;">pkts</span></div>
+        <div class="kpi-sub">Acceptance: <span style="color: #38ef7d;">{verified_pct:.1f}%</span></div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
 with kpi3:
-    n1_status = '<span class="status-badge badge-ok">ONLINE</span>' if telem.node1_online else '<span class="status-badge badge-warn">OFFLINE</span>'
-    st.markdown(f"**Node 1 (Encoders):** {n1_status}", unsafe_allow_html=True)
-    st.metric("Wheel Speed (Avg)", f"{(sum(telem.wheel_rpm)/4.0):.1f} RPM")
+    n1_badge = '<span class="status-badge badge-ok">ONLINE</span>' if telem.node1_online else '<span class="status-badge badge-warn">OFFLINE</span>'
+    avg_rpm = sum(telem.wheel_rpm) / 4.0
+    st.markdown(
+        f"""
+    <div class="kpi-box">
+        <div class="kpi-title">Node 1 (Wheel Encoders) &nbsp;{n1_badge}</div>
+        <div class="kpi-value">{avg_rpm:.1f} <span style="font-size: 14px; color: #64748b;">RPM</span></div>
+        <div class="kpi-sub">FL: {telem.wheel_rpm[0]:.0f} | FR: {telem.wheel_rpm[1]:.0f} | RL: {telem.wheel_rpm[2]:.0f} | RR: {telem.wheel_rpm[3]:.0f}</div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
 with kpi4:
-    n2_status = '<span class="status-badge badge-ok">ONLINE</span>' if telem.node2_online else '<span class="status-badge badge-warn">OFFLINE</span>'
-    st.markdown(f"**Node 2 (IMU):** {n2_status}", unsafe_allow_html=True)
-    st.metric("Observed Yaw Rate", f"{telem.yaw_rate:.3f} rad/s")
+    n2_badge = '<span class="status-badge badge-ok">ONLINE</span>' if telem.node2_online else '<span class="status-badge badge-warn">OFFLINE</span>'
+    st.markdown(
+        f"""
+    <div class="kpi-box">
+        <div class="kpi-title">Node 2 (MPU-6050 IMU) &nbsp;{n2_badge}</div>
+        <div class="kpi-value">{telem.yaw_rate:+.3f} <span style="font-size: 14px; color: #64748b;">rad/s</span></div>
+        <div class="kpi-sub">Z-Accel: {telem.accel[2]:+.2f} m/s² | Verified: {telem.imu_verified}</div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
 with kpi5:
-    ml_badge = '<span class="status-badge badge-ok">NORMAL</span>' if ml_res["prediction"] == "NORMAL" else '<span class="status-badge badge-danger">ANOMALY</span>'
-    st.markdown(f"**Layer 2 ML IDS:** {ml_badge}", unsafe_allow_html=True)
-    st.metric("Anomaly Score", f"{ml_res['anomaly_score']:.2f}")
+    is_normal = ml_res["prediction"] == "NORMAL"
+    ml_badge = '<span class="status-badge badge-ok">NORMAL</span>' if is_normal else '<span class="status-badge badge-danger">ANOMALY</span>'
+    anomaly_val = ml_res["anomaly_score"]
+    anom_color = "#3fb950" if anomaly_val < 0.3 else ("#d29922" if anomaly_val < 0.6 else "#f85149")
+    st.markdown(
+        f"""
+    <div class="kpi-box">
+        <div class="kpi-title">Layer 2 ML IDS &nbsp;{ml_badge}</div>
+        <div class="kpi-value" style="color: {anom_color};">{anomaly_val:.2f} <span style="font-size: 14px; color: #64748b;">score</span></div>
+        <div class="kpi-sub">Kalman & Random Forest Classifier</div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
-st.write("---")
+st.write("")
 
 # ---------------------------------------------------------------------
 # Dashboard Tabs
@@ -249,68 +446,125 @@ with tab_telemetry:
     col_t1, col_t2 = st.columns(2)
 
     with col_t1:
-        st.subheader("4-Wheel Rotational Velocities (RPM)")
-        w_df = pd.DataFrame({
-            "Wheel": ["Front-Left (FL)", "Front-Right (FR)", "Rear-Left (RL)", "Rear-Right (RR)"],
-            "RPM": list(telem.wheel_rpm),
-            "Verified Packets": list(telem.wheel_verified),
-        })
-        st.dataframe(w_df, use_container_width=True)
+        st.markdown(
+            """
+        <div class="soc-card">
+            <div class="soc-card-title">🛞 4-Wheel Rotational Speed & Status</div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
         fig_wheels = go.Figure()
         fig_wheels.add_trace(go.Bar(
-            x=["FL", "FR", "RL", "RR"],
+            x=["FL (Front-Left)", "FR (Front-Right)", "RL (Rear-Left)", "RR (Rear-Right)"],
             y=list(telem.wheel_rpm),
-            marker_color=["#58a6ff", "#58a6ff", "#3fb950", "#3fb950"],
+            marker=dict(
+                color=["#38bdf8", "#38bdf8", "#34d399", "#34d399"],
+                line=dict(color="rgba(255,255,255,0.2)", width=1.5),
+            ),
+            text=[f"{v:.1f} RPM" for v in telem.wheel_rpm],
+            textposition="auto",
         ))
         fig_wheels.update_layout(
             template="plotly_dark",
-            title="Real-Time Wheel RPM",
-            yaxis_title="RPM",
+            paper_bgcolor="rgba(15,23,42,0.6)",
+            plot_bgcolor="rgba(15,23,42,0.4)",
+            yaxis_title="Rotational Velocity (RPM)",
             margin=dict(l=20, r=20, t=30, b=20),
-            height=280,
+            height=260,
         )
         st.plotly_chart(fig_wheels, use_container_width=True)
 
-    with col_t2:
-        st.subheader("MPU-6050 Motion Dynamics")
-        m_df = pd.DataFrame({
-            "Axis": ["X-Axis", "Y-Axis", "Z-Axis"],
-            "Acceleration (m/s²)": list(telem.accel),
-            "Angular Rate (rad/s)": list(telem.gyro),
+        w_df = pd.DataFrame({
+            "Position": ["Front-Left (FL)", "Front-Right (FR)", "Rear-Left (RL)", "Rear-Right (RR)"],
+            "RPM": [f"{r:.1f}" for r in telem.wheel_rpm],
+            "Verified Wire Packets": list(telem.wheel_verified),
+            "Status": ["ACTIVE" if telem.node1_online else "STANDBY"] * 4,
         })
-        st.dataframe(m_df, use_container_width=True)
+        st.dataframe(w_df, use_container_width=True, hide_index=True)
+
+    with col_t2:
+        st.markdown(
+            """
+        <div class="soc-card">
+            <div class="soc-card-title">🧭 MPU-6050 6-DOF Inertial Dynamics</div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
         fig_imu = go.Figure()
-        fig_imu.add_trace(go.Bar(x=["Accel X", "Accel Y", "Accel Z"], y=list(telem.accel), name="m/s²", marker_color="#f0883e"))
-        fig_imu.add_trace(go.Bar(x=["Gyro X", "Gyro Y", "Gyro Z"], y=list(telem.gyro), name="rad/s", marker_color="#a371f7"))
+        fig_imu.add_trace(go.Bar(
+            x=["Accel X", "Accel Y", "Accel Z"],
+            y=list(telem.accel),
+            name="Acceleration (m/s²)",
+            marker_color="#fb923c",
+            text=[f"{v:+.2f}" for v in telem.accel],
+            textposition="auto",
+        ))
+        fig_imu.add_trace(go.Bar(
+            x=["Gyro X", "Gyro Y", "Gyro Z"],
+            y=list(telem.gyro),
+            name="Angular Rate (rad/s)",
+            marker_color="#a855f7",
+            text=[f"{v:+.3f}" for v in telem.gyro],
+            textposition="auto",
+        ))
         fig_imu.update_layout(
             template="plotly_dark",
-            title="IMU 6-DOF Physical Measurements",
+            paper_bgcolor="rgba(15,23,42,0.6)",
+            plot_bgcolor="rgba(15,23,42,0.4)",
             margin=dict(l=20, r=20, t=30, b=20),
-            height=280,
+            height=260,
             barmode="group",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         )
         st.plotly_chart(fig_imu, use_container_width=True)
 
+        m_df = pd.DataFrame({
+            "Dimension": ["X-Axis (Longitudinal / Roll)", "Y-Axis (Lateral / Pitch)", "Z-Axis (Vertical / Yaw)"],
+            "Acceleration (m/s²)": [f"{a:+.3f}" for a in telem.accel],
+            "Angular Rate (rad/s)": [f"{g:+.3f}" for g in telem.gyro],
+        })
+        st.dataframe(m_df, use_container_width=True, hide_index=True)
+
     if history:
-        st.subheader("Rolling Telemetry Trends")
+        st.markdown(
+            """
+        <div class="soc-card" style="margin-top: 14px;">
+            <div class="soc-card-title">📈 Rolling Kinematic Waveforms (Speeds vs Observed Yaw)</div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
         h_df = pd.DataFrame(history)
         h_df["rel_time"] = h_df["time"] - h_df["time"].iloc[0]
 
         fig_trend = go.Figure()
-        fig_trend.add_trace(go.Scatter(x=h_df["rel_time"], y=h_df["fl_rpm"], name="FL RPM", line=dict(color="#58a6ff")))
-        fig_trend.add_trace(go.Scatter(x=h_df["rel_time"], y=h_df["fr_rpm"], name="FR RPM", line=dict(color="#3fb950")))
-        fig_trend.add_trace(go.Scatter(x=h_df["rel_time"], y=h_df["yaw_rate"], name="Yaw Rate (rad/s)", yaxis="y2", line=dict(color="#f0883e", dash="dash")))
+        fig_trend.add_trace(go.Scatter(
+            x=h_df["rel_time"], y=h_df["fl_rpm"], name="FL Wheel RPM",
+            line=dict(color="#38bdf8", width=2),
+        ))
+        fig_trend.add_trace(go.Scatter(
+            x=h_df["rel_time"], y=h_df["fr_rpm"], name="FR Wheel RPM",
+            line=dict(color="#34d399", width=2),
+        ))
+        fig_trend.add_trace(go.Scatter(
+            x=h_df["rel_time"], y=h_df["yaw_rate"], name="Yaw Rate (rad/s)",
+            yaxis="y2", line=dict(color="#fb923c", width=2, dash="dot"),
+        ))
 
         fig_trend.update_layout(
             template="plotly_dark",
-            title="Wheel Speeds vs Observed Yaw Rate Over Time",
-            xaxis_title="Elapsed Time (s)",
-            yaxis_title="RPM",
-            yaxis2=dict(title="Yaw Rate (rad/s)", overlaying="y", side="right"),
-            height=320,
+            paper_bgcolor="rgba(15,23,42,0.6)",
+            plot_bgcolor="rgba(15,23,42,0.4)",
+            xaxis=dict(title="Elapsed Time (s)", showgrid=True, gridcolor="rgba(255,255,255,0.06)"),
+            yaxis=dict(title="Wheel Speed (RPM)", showgrid=True, gridcolor="rgba(255,255,255,0.06)"),
+            yaxis2=dict(title="Yaw Rate (rad/s)", overlaying="y", side="right", showgrid=False),
+            height=300,
             margin=dict(l=20, r=20, t=30, b=20),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         )
         st.plotly_chart(fig_trend, use_container_width=True)
 
@@ -318,75 +572,139 @@ with tab_telemetry:
 # TAB 2: Security & Layer 1 Verifier
 # ---------------------------------------------------------------------
 with tab_security:
-    st.subheader("Layer 1 Cryptographic Authentication & Freshness Status")
+    st.markdown(
+        """
+    <div style="margin-bottom: 16px;">
+        <h3 style="margin: 0; color: #58a6ff;">Layer 1 Cryptographic Authentication & Freshness Status</h3>
+        <p style="color: #8b949e; font-size: 13px; margin: 4px 0 0 0;">
+            Node 4 validates every 91-byte ESP-NOW frame: Identity verification (Monocypher Ed25519) + Anti-replay hash tree (BLAKE3).
+        </p>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
     sec_col1, sec_col2, sec_col3 = st.columns(3)
     with sec_col1:
-        st.markdown('<div class="soc-card">', unsafe_allow_html=True)
-        st.markdown("**Node 1 (Encoder ECU)**")
-        st.write(f"• Role: 4-Wheel Speed ECU")
-        st.write(f"• Public Key: `39543B892EFC...` (Configured)")
-        st.write(f"• Verified Streams: `FL`, `FR`, `RL`, `RR`")
-        st.write(f"• Cumulative Verified: **{sum(telem.wheel_verified)} pkts**")
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+        <div class="soc-card">
+            <div class="soc-card-title">🔐 Node 1: Encoder ECU</div>
+            <div style="font-size: 13px; line-height: 1.8;">
+                <div><span style="color: #8b949e;">Role:</span> 4-Wheel Speed ECU</div>
+                <div><span style="color: #8b949e;">Pubkey:</span> <code class="mono-font" style="color: #38bdf8;">39543B892EFC...</code></div>
+                <div><span style="color: #8b949e;">Allowlisted:</span> <code>FL</code>, <code>FR</code>, <code>RL</code>, <code>RR</code></div>
+                <div><span style="color: #8b949e;">Verified Frames:</span> <strong style="color: #38ef7d;">{sum(telem.wheel_verified):,}</strong></div>
+            </div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
     with sec_col2:
-        st.markdown('<div class="soc-card">', unsafe_allow_html=True)
-        st.markdown("**Node 2 (IMU ECU)**")
-        st.write(f"• Role: 6-Axis Inertial Measurement")
-        st.write(f"• Public Key: `9D73E9705A7E...` (Configured)")
-        st.write(f"• Verified Streams: `AX`, `AY`, `AZ`, `GX`, `GY`, `GZ`")
-        st.write(f"• Cumulative Verified: **{telem.imu_verified} pkts**")
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+        <div class="soc-card">
+            <div class="soc-card-title">🔐 Node 2: IMU ECU</div>
+            <div style="font-size: 13px; line-height: 1.8;">
+                <div><span style="color: #8b949e;">Role:</span> 6-Axis Inertial Dynamics</div>
+                <div><span style="color: #8b949e;">Pubkey:</span> <code class="mono-font" style="color: #38bdf8;">D7D4141F728F...</code></div>
+                <div><span style="color: #8b949e;">Allowlisted:</span> <code>AX</code>, <code>AY</code>, <code>AZ</code>, <code>GX</code>, <code>GY</code>, <code>GZ</code></div>
+                <div><span style="color: #8b949e;">Verified Frames:</span> <strong style="color: #38ef7d;">{telem.imu_verified:,}</strong></div>
+            </div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
     with sec_col3:
-        st.markdown('<div class="soc-card">', unsafe_allow_html=True)
-        st.markdown("**Node 4 Verifier Metrics**")
-        st.write(f"• Wire Size: 91 bytes / packet")
-        st.write(f"• Queue Drops: **{telem.q_drops}**")
-        st.write(f"• Average Verify Latency: **{telem.verify_avg_us} µs**")
-        st.write(f"• Max Verify Latency: **{telem.verify_max_us} µs**")
-        st.markdown("</div>", unsafe_allow_html=True)
+        avg_lat_ms = telem.verify_avg_us / 1000.0
+        max_lat_ms = telem.verify_max_us / 1000.0
+        st.markdown(
+            f"""
+        <div class="soc-card">
+            <div class="soc-card-title">⚡ Node 4 Verifier Metrics</div>
+            <div style="font-size: 13px; line-height: 1.8;">
+                <div><span style="color: #8b949e;">Frame Spec:</span> 91 bytes wire protocol</div>
+                <div><span style="color: #8b949e;">Wi-Fi Queue Drops:</span> <strong style="color: {'#3fb950' if telem.q_drops == 0 else '#f85149'};">{telem.q_drops}</strong></div>
+                <div><span style="color: #8b949e;">Mean Verify Latency:</span> <strong>{telem.verify_avg_us} µs</strong> ({avg_lat_ms:.2f} ms)</div>
+                <div><span style="color: #8b949e;">Peak Verify Latency:</span> <strong>{telem.verify_max_us} µs</strong> ({max_lat_ms:.2f} ms)</div>
+            </div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
-    st.subheader("Rejection Root Cause Breakdown")
     col_r1, col_r2 = st.columns([1, 2])
     with col_r1:
-        st.metric("Untrusted Sender (e.g. Node 5)", telem.rej_untrusted)
-        st.metric("Unknown/Disallowed Stream", telem.rej_stream)
-        st.metric("Bad Signature (Ed25519)", telem.rej_sig)
-        st.metric("Bad Freshness (BLAKE3)", telem.rej_fresh)
-        st.metric("Replay / Stale Epoch", telem.rej_replay)
+        st.markdown(
+            """
+        <div class="soc-card">
+            <div class="soc-card-title">🛑 Rejection Root Cause Counters</div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+        st.metric("Untrusted Sender (Node 5/6)", telem.rej_untrusted)
+        st.metric("Unknown / Disallowed Stream", telem.rej_stream)
+        st.metric("Invalid Cryptographic Signature", telem.rej_sig)
+        st.metric("Freshness Token Mismatch", telem.rej_fresh)
+        st.metric("Replay / Stale Counter", telem.rej_replay)
 
     with col_r2:
-        fig_rej = go.Figure(data=[go.Pie(
-            labels=["Bad Signature", "Stale Replay", "Bad Freshness", "Disallowed Stream", "Untrusted Sender"],
-            values=[telem.rej_sig, telem.rej_replay, telem.rej_fresh, telem.rej_stream, telem.rej_untrusted],
-            hole=0.4,
-            marker_colors=["#da3633", "#f0883e", "#a371f7", "#8b949e", "#ff7b72"],
-        )])
-        fig_rej.update_layout(
-            template="plotly_dark",
-            title="Layer 1 Rejection Distribution",
-            margin=dict(l=20, r=20, t=30, b=20),
-            height=280,
-        )
-        st.plotly_chart(fig_rej, use_container_width=True)
+        rej_sum = telem.rej_sig + telem.rej_replay + telem.rej_fresh + telem.rej_stream + telem.rej_untrusted
+        if rej_sum > 0:
+            fig_rej = go.Figure(data=[go.Pie(
+                labels=["Bad Signature", "Stale Replay", "Bad Freshness", "Disallowed Stream", "Untrusted Sender"],
+                values=[telem.rej_sig, telem.rej_replay, telem.rej_fresh, telem.rej_stream, telem.rej_untrusted],
+                hole=0.45,
+                marker_colors=["#f85149", "#fb923c", "#c084fc", "#64748b", "#f43f5e"],
+            )])
+            fig_rej.update_layout(
+                template="plotly_dark",
+                paper_bgcolor="rgba(15,23,42,0.6)",
+                plot_bgcolor="rgba(15,23,42,0.4)",
+                title="Layer 1 Threat Attribution",
+                margin=dict(l=20, r=20, t=30, b=20),
+                height=290,
+            )
+            st.plotly_chart(fig_rej, use_container_width=True)
+        else:
+            st.markdown(
+                """
+            <div class="soc-card" style="height: 290px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                <div style="font-size: 40px; margin-bottom: 10px;">🛡️</div>
+                <div style="color: #38ef7d; font-weight: 700; font-size: 16px;">Zero Rejections Recorded</div>
+                <div style="color: #64748b; font-size: 13px; max-width: 320px; margin-top: 6px;">
+                    All received frames pass Ed25519 authentication and BLAKE3 freshness verification.
+                </div>
+            </div>
+            """,
+                unsafe_allow_html=True,
+            )
 
-    st.subheader("Security Event Log (Latest 20 Events)")
+    st.markdown(
+        """
+    <div class="soc-card" style="margin-top: 14px;">
+        <div class="soc-card-title">📜 Layer 1 Security Events Audit Log</div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
     if events:
         evt_records = [
             {
-                "Time": time.strftime("%H:%M:%S", time.localtime(e.timestamp)),
-                "Type": "TEST" if e.is_test else "REAL",
+                "Timestamp": time.strftime("%H:%M:%S", time.localtime(e.timestamp)),
+                "Source": "LOCAL_TEST" if e.is_test else "WIRE_RX",
                 "Sender": f"Node {e.sender_id}",
-                "Stream": f"Subtype {e.subtype}",
+                "Stream": f"Sub {e.subtype}",
                 "Epoch": e.epoch,
-                "Payload": e.payload,
-                "Verdict": e.verdict,
+                "Wire Payload": e.payload,
+                "Security Verdict": e.verdict,
             }
             for e in reversed(list(events)[-20:])
         ]
-        st.dataframe(pd.DataFrame(evt_records), use_container_width=True)
+        st.dataframe(pd.DataFrame(evt_records), use_container_width=True, hide_index=True)
     else:
         st.info("No security rejection events recorded yet.")
 
@@ -394,82 +712,193 @@ with tab_security:
 # TAB 3: Layer 2 ML Model
 # ---------------------------------------------------------------------
 with tab_ml:
-    st.subheader("AI-Aided Physical Intrusion Detection System")
     st.markdown(
         """
-    Layer 2 checks kinematic consistency between wheel speeds and IMU readings.
-    A discrete-time **Rover Kalman Filter** fuses measurements into an innovation residual,
-    which is evaluated by a **100-tree Random Forest Classifier** to distinguish legitimate turns from stealthy spoofing.
-    """
+    <div style="margin-bottom: 16px;">
+        <h3 style="margin: 0; color: #58a6ff;">🧠 AI-Aided Physical Intrusion Detection System</h3>
+        <p style="color: #8b949e; font-size: 13px; margin: 4px 0 0 0;">
+            Layer 2 performs physics-based kinematic consistency checks. A discrete-time <strong>Rover Kalman Filter</strong>
+            fuses wheel velocities and IMU dynamics into innovation residuals, evaluated by a <strong>100-tree Random Forest</strong>
+            to detect stealthy sensor spoofing that bypasses Layer 1.
+        </p>
+    </div>
+    """,
+        unsafe_allow_html=True,
     )
 
     ml_col1, ml_col2 = st.columns(2)
     with ml_col1:
-        st.markdown('<div class="soc-card">', unsafe_allow_html=True)
-        st.markdown("**Model Specifications**")
-        st.write("• Architecture: Supervised Random Forest (100 Decision Trees)")
-        st.write("• Feature Dimension: 11 Kinematic Features")
-        st.write("• Input Dimensions: 4 Wheel RPMs + 6-Axis IMU")
-        st.write("• Decision Classes: `0 = NORMAL`, `1 = ANOMALY`")
-        st.write(f"• Current Verdict: **{ml_res['prediction']}**")
-        st.write(f"• Anomaly Probability: **{ml_res['anomaly_score']:.4f}**")
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+        <div class="soc-card">
+            <div class="soc-card-title">🤖 Random Forest Classifier Engine</div>
+            <div style="font-size: 13px; line-height: 1.8;">
+                <div><span style="color: #8b949e;">Architecture:</span> Supervised Ensemble (100 Decision Trees)</div>
+                <div><span style="color: #8b949e;">Feature Vector:</span> 11 Dynamic Kinematic Signals</div>
+                <div><span style="color: #8b949e;">Current Prediction:</span> <strong style="color: {'#38ef7d' if ml_res['prediction'] == 'NORMAL' else '#f85149'};">{ml_res['prediction']}</strong></div>
+                <div><span style="color: #8b949e;">Anomaly Probability:</span> <strong>{ml_res['anomaly_score']:.4f}</strong></div>
+            </div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+        fig_gauge = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=ml_res["anomaly_score"],
+            domain={'x': [0, 1], 'y': [0, 1]},
+            title={'text': "Anomaly Risk Index", 'font': {'size': 14, 'color': '#94a3b8'}},
+            gauge={
+                'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "#334155"},
+                'bar': {'color': "#38bdf8"},
+                'bgcolor': "rgba(15,23,42,0.6)",
+                'borderwidth': 1,
+                'bordercolor': "#334155",
+                'steps': [
+                    {'range': [0, 0.35], 'color': 'rgba(56, 239, 125, 0.2)'},
+                    {'range': [0.35, 0.70], 'color': 'rgba(251, 146, 60, 0.2)'},
+                    {'range': [0.70, 1.0], 'color': 'rgba(248, 81, 73, 0.25)'},
+                ],
+                'threshold': {
+                    'line': {'color': "#f85149", 'width': 3},
+                    'thickness': 0.8,
+                    'value': 0.65,
+                },
+            },
+        ))
+        fig_gauge.update_layout(
+            template="plotly_dark",
+            paper_bgcolor="rgba(15,23,42,0.6)",
+            height=200,
+            margin=dict(l=20, r=20, t=30, b=20),
+        )
+        st.plotly_chart(fig_gauge, use_container_width=True)
 
     with ml_col2:
-        st.markdown('<div class="soc-card">', unsafe_allow_html=True)
-        st.markdown("**Kalman Kinematic Fusion State**")
         k_state = ml_res.get("kalman_state", {})
-        st.write(f"• Fused Forward Velocity: **{k_state.get('fused_velocity', 0.0):.3f} m/s**")
-        st.write(f"• Fused Yaw Rate: **{k_state.get('fused_yaw_rate', 0.0):.3f} rad/s**")
-        st.write(f"• Fused Longitudinal Accel: **{k_state.get('fused_acceleration', 0.0):.3f} m/s²**")
-        st.markdown("</div>", unsafe_allow_html=True)
+        f_vel = k_state.get('fused_velocity', 0.0)
+        f_yaw = k_state.get('fused_yaw_rate', 0.0)
+        f_acc = k_state.get('fused_acceleration', 0.0)
+
+        st.markdown(
+            f"""
+        <div class="soc-card">
+            <div class="soc-card-title">🧮 Kalman Fusion & State Innovation</div>
+            <div style="font-size: 13px; line-height: 1.8;">
+                <div><span style="color: #8b949e;">Fused Forward Velocity:</span> <strong>{f_vel:.3f} m/s</strong></div>
+                <div><span style="color: #8b949e;">Fused Yaw Rate:</span> <strong>{f_yaw:.3f} rad/s</strong></div>
+                <div><span style="color: #8b949e;">Fused Longitudinal Accel:</span> <strong>{f_acc:.3f} m/s²</strong></div>
+            </div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+        k_df = pd.DataFrame({
+            "State Variable": ["Forward Velocity (v)", "Yaw Rate (ω)", "Longitudinal Accel (a)"],
+            "Fused Estimate": [f"{f_vel:.3f} m/s", f"{f_yaw:.3f} rad/s", f"{f_acc:.3f} m/s²"],
+            "Direct Sensor Ref": [f"{(sum(telem.wheel_rpm)/4.0 * 0.033 * 0.10472):.3f} m/s", f"{telem.yaw_rate:.3f} rad/s", f"{telem.accel[0]:.3f} m/s²"],
+        })
+        st.dataframe(k_df, use_container_width=True, hide_index=True)
 
     if ml_res.get("features"):
-        st.subheader("Extracted Features Ingested by Random Forest")
-        feat_df = pd.DataFrame([{"Feature": k, "Value": round(v, 4)} for k, v in ml_res["features"].items()])
-        st.dataframe(feat_df.T, use_container_width=True)
+        st.markdown(
+            """
+        <div class="soc-card" style="margin-top: 14px;">
+            <div class="soc-card-title">📊 Kinematic Feature Vector Fed to Classifier</div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+        f_cols = st.columns(len(ml_res["features"]))
+        for col, (fname, fval) in zip(f_cols, ml_res["features"].items()):
+            with col:
+                st.metric(fname, f"{fval:.3f}")
 
 # ---------------------------------------------------------------------
 # TAB 4: Attack Simulation
 # ---------------------------------------------------------------------
 with tab_attacks:
-    st.subheader("⚔️ Cyber-Physical Attack Injection Lab")
     st.markdown(
         """
-    Execute controlled attack scenarios to test the multi-tier defense architecture.
-    - **Layer 1 Scenarios:** Send hardware self-test triggers to Node 4 over serial.
-    - **Layer 2 Scenarios:** Evaluate synthetic sensor spoofing against the real ML model.
-    *All attack vectors remain isolated from live actuator controls.*
-    """
+    <div style="margin-bottom: 16px;">
+        <h3 style="margin: 0; color: #58a6ff;">⚔️ Cyber-Physical Attack Simulation & Red-Teaming</h3>
+        <p style="color: #8b949e; font-size: 13px; margin: 4px 0 0 0;">
+            Execute isolated attack injections against the CANARY architecture. Verify that Layer 1 catches cryptographic violations
+            and Layer 2 catches physical inconsistency.
+        </p>
+    </div>
+    """,
+        unsafe_allow_html=True,
     )
 
     sel_scenario = st.selectbox(
-        "Select Attack Scenario",
+        "Select Attack Vector",
         [f"{s.id}: {s.name}" for s in SCENARIOS],
     )
     scen_id = sel_scenario.split(":")[0]
     scen_obj = next(s for s in SCENARIOS if s.id == scen_id)
 
-    st.markdown(f"**Category:** `{scen_obj.category}`")
-    st.markdown(f"**Description:** {scen_obj.description}")
-    st.markdown(f"**Expected Layer 1 Outcome:** `{scen_obj.expected_l1}`")
-    st.markdown(f"**Expected Layer 2 Outcome:** `{scen_obj.expected_l2}`")
+    st.markdown(
+        f"""
+    <div class="soc-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <strong style="color: #58a6ff; font-size: 16px;">{scen_obj.name}</strong>
+            <span class="status-badge badge-warn">{scen_obj.category}</span>
+        </div>
+        <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 12px;">{scen_obj.description}</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 6px;">
+                <span style="color: #8b949e;">Expected Layer 1 Response:</span><br/>
+                <code style="color: #38bdf8;">{scen_obj.expected_l1}</code>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 6px;">
+                <span style="color: #8b949e;">Expected Layer 2 Response:</span><br/>
+                <code style="color: #fb923c;">{scen_obj.expected_l2}</code>
+            </div>
+        </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
-    if st.button("🚀 Execute Attack Scenario"):
+    if st.button("🚀 Trigger Attack Scenario", type="primary"):
         result = attack_sim.execute_scenario(scen_id, telem)
         st.success(f"Executed: {result['scenario_name']}")
         st.json(result)
 
     if attack_sim.history:
-        st.subheader("Attack Simulation Execution History")
-        st.dataframe(pd.DataFrame(attack_sim.history), use_container_width=True)
+        st.markdown(
+            """
+        <div class="soc-card" style="margin-top: 14px;">
+            <div class="soc-card-title">📜 Attack Execution History</div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+        st.dataframe(pd.DataFrame(attack_sim.history), use_container_width=True, hide_index=True)
 
 # ---------------------------------------------------------------------
 # TAB 5: Serial Logs
 # ---------------------------------------------------------------------
 with tab_logs:
-    st.subheader("Raw Node 4 Serial Console Output")
-    st.text_area("Live Terminal Buffer", value="\n".join(raw_logs), height=400)
+    st.markdown(
+        """
+    <div style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin: 0; color: #58a6ff;">📜 Live Node 4 Serial Telemetry Stream</h3>
+            <div style="color: #8b949e; font-size: 12px;">Direct ASCII telemetry and rejection events from verifier hardware</div>
+        </div>
+        <div>
+            <span class="status-badge badge-info">{len(raw_logs)} lines buffered</span>
+        </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    log_content = "\n".join(raw_logs) if raw_logs else "No serial stream data received yet. Connect to Node 4 or switch to DEMO mode."
+    st.markdown(f'<div class="terminal-box"><pre style="margin:0; background:transparent; border:none; color:inherit;">{log_content}</pre></div>', unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------
 # Auto-refresh loop
