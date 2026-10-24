@@ -249,10 +249,11 @@ op_mode = st.sidebar.radio(
 )
 
 if op_mode == "LIVE HARDWARE":
+    current_conn_type = getattr(serial_mgr, "conn_type", "NONE")
     link_type = st.sidebar.radio(
         "Hardware Link",
         ["📶 Wireless Wi-Fi (UDP)", "🔌 USB Serial (COM)"],
-        index=0 if serial_mgr.conn_type == "UDP" else 1,
+        index=0 if current_conn_type == "UDP" else 1,
     )
 
     if link_type == "📶 Wireless Wi-Fi (UDP)":
@@ -305,7 +306,8 @@ if op_mode == "LIVE HARDWARE":
                 st.sidebar.info("Disconnected")
                 st.rerun()
 
-    conn_status = f"🟢 CONNECTED ({serial_mgr.conn_type})" if serial_mgr.running else "🔴 DISCONNECTED"
+    conn_type_str = getattr(serial_mgr, "conn_type", "NONE")
+    conn_status = f"🟢 CONNECTED ({conn_type_str})" if serial_mgr.running else "🔴 DISCONNECTED"
     st.sidebar.markdown(f"**Status:** {conn_status} ({serial_mgr.connected_port or 'N/A'})")
 
 else:

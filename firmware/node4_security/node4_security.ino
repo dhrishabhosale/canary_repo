@@ -8,6 +8,10 @@
  *
  * Node 4 holds only PUBLIC keys plus the freshness tree seeds. It never
  * holds a signing key.
+ *
+ * Telemetry Output:
+ *  - USB Serial @ 115200 baud
+ *  - Untethered Wi-Fi Hotspot ("CANARY_HOTSPOT" / "canary1234") via UDP broadcast on port 8888
  */
 
 #include <Arduino.h>
@@ -309,14 +313,12 @@ void loop() {
 #if CANARY_N4_SELFTEST
   while (Serial.available()) selfTest((char)Serial.read());
 
-#if CANARY_N4_SELFTEST
+  // Listen for commands via UDP as well
   int packetSize = udp.parsePacket();
   if (packetSize > 0) {
     char c = (char)udp.read();
     selfTest(c);
   }
-#endif
-
 #endif
 
   static uint32_t lastReport = 0;
