@@ -5,6 +5,7 @@ and maintains thread-safe rolling queues for UI consumption.
 """
 
 import re
+import socket
 import threading
 import time
 from collections import deque
@@ -88,10 +89,13 @@ class SerialTelemetryManager:
         self.history_len = history_len
         self.lock = threading.Lock()
         self.serial_port: Optional[serial.Serial] = None
+        self.udp_sock: Optional[socket.socket] = None
         self.thread: Optional[threading.Thread] = None
         self.running = False
+        self.conn_type: str = "NONE"  # "SERIAL" or "UDP"
         self.connected_port: Optional[str] = None
         self.baudrate: int = 115200
+        self.udp_port: int = 8888
 
         self.latest = Node4Telemetry()
         self.history = deque(maxlen=history_len)
@@ -118,6 +122,7 @@ class SerialTelemetryManager:
                 self.serial_port = serial.Serial(port, baudrate, timeout=1.0)
                 self.connected_port = port
                 self.baudrate = baudrate
+                self.conn_type = "SERIAL"
                 self.running = True
                 self.thread = threading.Thread(target=self._read_loop, daemon=True)
                 self.thread.start()
@@ -126,6 +131,33 @@ class SerialTelemetryManager:
                 self.serial_port = None
                 self.running = False
                 return False, f"Failed to connect: {e}"
+
+    def connect_udp(self, host: str = "0.0.0.0", port: int = 8888) -> Tuple[bool, str]:
+        """Connect via wireless Wi-Fi UDP listener."""
+        with self.lock:
+            if self.running:
+                return True, "Already connected"
+            try:
+                self.udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                self.udp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                self.udp_sock.bind((host, port))
+                self.udp_sock.settimeout(1.0)
+                self.connected_port = f"UDP :{port}"
+                self.udp_port = port
+                self.conn_type = "UDP"
+                self.running = True
+                self.thread = threading.Thread(target=self._udp_read_loop, daemon=True)
+                self.thread.start()
+                return True, f"Listening on Wi-Fi UDP port {port}"
+            except Exception as e:
+                if self.udp_sock:
+                    try:
+                        self.udp_sock.close()
+                    except Exception:
+                        pass
+                self.udp_sock = None
+                self.running = False
+                return False, f"Failed to bind UDP port {port}: {e}"
 
     def disconnect(self):
         with self.lock:
@@ -136,18 +168,34 @@ class SerialTelemetryManager:
                 except Exception:
                     pass
                 self.serial_port = None
+            if self.udp_sock:
+                try:
+                    self.udp_sock.close()
+                except Exception:
+                    pass
+                self.udp_sock = None
             self.connected_port = None
+            self.conn_type = "NONE"
 
     def send_command(self, cmd: str) -> bool:
         with self.lock:
-            if not self.serial_port or not self.running:
+            if not self.running:
                 return False
-            try:
-                self.serial_port.write(cmd.encode("ascii"))
-                self.serial_port.flush()
-                return True
-            except Exception:
-                return False
+            if self.conn_type == "SERIAL" and self.serial_port:
+                try:
+                    self.serial_port.write(cmd.encode("ascii"))
+                    self.serial_port.flush()
+                    return True
+                except Exception:
+                    return False
+            elif self.conn_type == "UDP" and self.udp_sock:
+                try:
+                    # Broadcast command back to Node 4 AP
+                    self.udp_sock.sendto(cmd.encode("ascii"), ("192.168.4.1", self.udp_port))
+                    return True
+                except Exception:
+                    return False
+            return False
 
     def get_snapshot(self) -> Tuple[Node4Telemetry, List[dict], List[SecurityEvent], List[str]]:
         with self.lock:
@@ -177,6 +225,27 @@ class SerialTelemetryManager:
                     if line:
                         self._parse_line(line)
             except Exception as e:
+                time.sleep(0.1)
+                if not self.running:
+                    break
+
+    def _udp_read_loop(self):
+        """Background thread reading live telemetry broadcast packets over Wi-Fi UDP."""
+        while self.running:
+            try:
+                if not self.udp_sock:
+                    break
+                data, addr = self.udp_sock.recvfrom(2048)
+                if not data:
+                    continue
+                text = data.decode("utf-8", errors="replace")
+                for line in text.splitlines():
+                    line = line.strip()
+                    if line:
+                        self._parse_line(line)
+            except socket.timeout:
+                continue
+            except Exception:
                 time.sleep(0.1)
                 if not self.running:
                     break

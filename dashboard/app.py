@@ -249,28 +249,63 @@ op_mode = st.sidebar.radio(
 )
 
 if op_mode == "LIVE HARDWARE":
-    st.sidebar.subheader("Serial Connection")
-    available_ports = serial_mgr.list_ports()
-    selected_port = st.sidebar.selectbox("Port", available_ports if available_ports else ["None found"])
-    baud = st.sidebar.selectbox("Baud Rate", [115200, 921600, 57600], index=0)
+    link_type = st.sidebar.radio(
+        "Hardware Link",
+        ["📶 Wireless Wi-Fi (UDP)", "🔌 USB Serial (COM)"],
+        index=0 if serial_mgr.conn_type == "UDP" else 1,
+    )
 
-    col_conn1, col_conn2 = st.sidebar.columns(2)
-    with col_conn1:
-        if st.button("Connect", disabled=serial_mgr.running or not available_ports):
-            ok, msg = serial_mgr.connect(selected_port, baud)
-            if ok:
-                st.sidebar.success(msg)
+    if link_type == "📶 Wireless Wi-Fi (UDP)":
+        st.sidebar.markdown(
+            """
+        <div style="font-size: 12px; color: #94a3b8; background: rgba(15,23,42,0.6); padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+            1. Connect laptop Wi-Fi to: <b>CANARY_HOTSPOT</b><br/>
+            2. Password: <code>canary1234</code><br/>
+            3. Port: <code>8888</code> (Channel 1)
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+        udp_port = st.sidebar.number_input("UDP Port", min_value=1024, max_value=65535, value=8888)
+
+        col_conn1, col_conn2 = st.sidebar.columns(2)
+        with col_conn1:
+            if st.button("Listen UDP", disabled=serial_mgr.running):
+                ok, msg = serial_mgr.connect_udp(port=udp_port)
+                if ok:
+                    st.sidebar.success(msg)
+                    st.rerun()
+                else:
+                    st.sidebar.error(msg)
+        with col_conn2:
+            if st.button("Disconnect", disabled=not serial_mgr.running):
+                serial_mgr.disconnect()
+                st.sidebar.info("Disconnected")
                 st.rerun()
-            else:
-                st.sidebar.error(msg)
 
-    with col_conn2:
-        if st.button("Disconnect", disabled=not serial_mgr.running):
-            serial_mgr.disconnect()
-            st.sidebar.info("Disconnected")
-            st.rerun()
+    else:
+        st.sidebar.subheader("Serial Connection")
+        available_ports = serial_mgr.list_ports()
+        selected_port = st.sidebar.selectbox("Port", available_ports if available_ports else ["None found"])
+        baud = st.sidebar.selectbox("Baud Rate", [115200, 921600, 57600], index=0)
 
-    conn_status = "🟢 CONNECTED" if serial_mgr.running else "🔴 DISCONNECTED"
+        col_conn1, col_conn2 = st.sidebar.columns(2)
+        with col_conn1:
+            if st.button("Connect COM", disabled=serial_mgr.running or not available_ports):
+                ok, msg = serial_mgr.connect(selected_port, baud)
+                if ok:
+                    st.sidebar.success(msg)
+                    st.rerun()
+                else:
+                    st.sidebar.error(msg)
+
+        with col_conn2:
+            if st.button("Disconnect", disabled=not serial_mgr.running):
+                serial_mgr.disconnect()
+                st.sidebar.info("Disconnected")
+                st.rerun()
+
+    conn_status = f"🟢 CONNECTED ({serial_mgr.conn_type})" if serial_mgr.running else "🔴 DISCONNECTED"
     st.sidebar.markdown(f"**Status:** {conn_status} ({serial_mgr.connected_port or 'N/A'})")
 
 else:
